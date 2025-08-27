@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrokeChain Game</title>
+  <!-- Reuse fonts and styles from main site -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <meta name="description" content="Play the BrokeChain mini‑game and aim for the top of the leaderboard." />
+  <style>
+    /* Additional game-specific styles */
+    .game-container {
+      /* Leave space for fixed header */
+      margin-top: 7rem;
+      padding: 1rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+    #gameCanvas {
+      background: rgba(18, 23, 38, 0.85);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 0.5rem;
+      display: block;
+      margin: 1rem auto;
+    }
+    #scoreboard {
+      background: rgba(18, 23, 38, 0.85);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 0.5rem;
+      /* Add extra top margin to avoid overlapping the fixed header */
+      margin: 2rem auto 1rem;
+      padding: 1rem;
+      max-width: 480px;
+    }
+    #scoreboard h2 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+    }
+    #scoreboard ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      text-align: left;
+    }
+    #scoreboard li {
+      margin-bottom: 0.25rem;
+    }
+    #gameOverOverlay {
+       position: fixed;
+       top: 0;
+       left: 0;
+       right: 0;
+       bottom: 0;
+       background: rgba(0, 0, 0, 0.85);
+       /* Center contents when visible */
+       align-items: center;
+       justify-content: center;
+       flex-direction: column;
+       color: #e3e7f1;
+       z-index: 2000;
+       /* Hide the overlay by default; it will be shown via display property in JS */
+       display: none;
+     }
+    #gameOverOverlay p {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    #gameOverOverlay input {
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.4rem;
+      border: none;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+    #gameOverOverlay button {
+      padding: 0.5rem 1.25rem;
+      margin: 0.25rem;
+      border: none;
+      border-radius: 0.4rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: #ffffff;
+      color: #090d23;
+    }
+    #gameOverOverlay button:hover {
+      background: #e3e7f1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header and navigation reused from main site -->
+  <header class="header">
+    <div class="container">
+      <nav class="nav" id="nav">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#timey">Timey Moon™</a>
+        <a href="whitepages.html#tokenomics">Tokenomics</a>
+        <a href="whitepages.html">Whitepages</a>
+        <a href="games.html">Games</a>
+      </nav>
+      <div class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </div>
+    </div>
+  </header>
+  <main class="game-container">
+    <!-- Leaderboard display -->
+    <div id="scoreboard"></div>
+    <!-- The game canvas -->
+    <canvas id="gameCanvas" width="480" height="640"></canvas>
+    <!-- Overlay for game over, score submission and restart -->
+    <div id="gameOverOverlay">
+      <p id="finalScore">Score: 0</p>
+      <label style="margin-bottom:0.5rem;">Enter your X @ or name:<br/><input id="playerName" type="text" placeholder="@username" /></label>
+      <div>
+        <button id="saveScoreBtn">Submit Score</button>
+        <button id="restartBtn">Play Again</button>
+      </div>
+    </div>
+  </main>
+  <footer>
+    © <script>document.write(new Date().getFullYear());</script> BrokeChain. All rights shattered. Timey Moon™ lives on.
+    <br/>
+    <small>No financial advice. DYOR.</small>
+  </footer>
+  <script>
+    // Toggle nav for mobile
+    const menuToggle = document.getElementById('menuToggle');
+    const nav = document.getElementById('nav');
+    menuToggle.addEventListener('click', () => {
+      nav.classList.toggle('open');
+    });
+    // Game logic
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreboardElem = document.getElementById('scoreboard');
+    const gameOverOverlay = document.getElementById('gameOverOverlay');
+    const finalScoreElem = document.getElementById('finalScore');
+    const playerNameInput = document.getElementById('playerName');
+    const saveScoreBtn = document.getElementById('saveScoreBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    let gameRunning = false;
+    // Flag that is set when the game ends to prevent accidental restarts via the space bar while the scoreboard overlay is visible.
+    let gameOverFlag = false;
+    const bird = { x: 80, y: canvas.height / 2 - 15, width: 30, height: 30, velocity: 0 };
+    // Make gravity a bit weaker and jump a bit gentler so the game feels easier
+    const gravity = 0.4;
+    const jumpStrength = -7;
+    const pipes = [];
+    // Increase the gap between candles to make navigation easier
+    const pipeGap = 200;
+    const pipeWidth = 60;
+    let frameCount = 0;
+    let score = 0;
+    // Load the BrokeChain hero image to replace the plain block
+    const heroImg = new Image();
+    heroImg.src = 'images/brokechain_icon_256.png';
+    // Initialize and display the scoreboard
+    function displayScoreboard() {
+      // Retrieve the top scores for the flappy game from localStorage
+      let board;
+      try {
+        board = JSON.parse(localStorage.getItem('flappy_board') || '[]');
+      } catch (e) {
+        board = [];
+      }
+      let html = '<h2>Top Players</h2><ol>';
+      board.forEach(entry => {
+        const safeName = entry.name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        html += `<li>${safeName} — ${entry.score}</li>`;
+      });
+      if (board.length === 0) {
+        html += '<li>No scores yet. Be the first!</li>';
+      }
+      html += '</ol>';
+      scoreboardElem.innerHTML = html;
+    }
+    // Update the flappy leaderboard in localStorage
+    function updateScoreboard(name, newScore) {
+      let board;
+      try {
+        board = JSON.parse(localStorage.getItem('flappy_board') || '[]');
+      } catch (e) {
+        board = [];
+      }
+      board.push({ name: name, score: newScore });
+      board.sort((a, b) => b.score - a.score);
+      if (board.length > 3) board = board.slice(0, 3);
+      localStorage.setItem('flappy_board', JSON.stringify(board));
+    }
+    // Reset game state
+    function resetGame() {
+      bird.y = canvas.height / 2 - bird.height / 2;
+      bird.velocity = 0;
+      pipes.length = 0;
+      frameCount = 0;
+      score = 0;
+      // Hide the game over overlay when starting/restarting a game
+      gameOverOverlay.style.display = 'none';
+    }
+    // Spawn a new pipe pair
+    function spawnPipe() {
+      const gapStart = Math.random() * (canvas.height - pipeGap - 200) + 100;
+      // Top candles are green and bottom candles are red to represent crypto trades
+      pipes.push({ x: canvas.width, y: 0, w: pipeWidth, h: gapStart, color: '#00c853' }); // green top candle
+      pipes.push({ x: canvas.width, y: gapStart + pipeGap, w: pipeWidth, h: canvas.height - (gapStart + pipeGap), color: '#d50000' }); // red bottom candle
+    }
+    // Handle jump on click or space
+    function jump() {
+      if (!gameRunning) return;
+      bird.velocity = jumpStrength;
+    }
+    canvas.addEventListener('mousedown', jump);
+    document.addEventListener('keydown', (e) => {
+      if (e.code === 'Space') {
+        /*
+         * Handle the space bar in a safer order:
+         *   1. If the game is currently running, allow the bird to flap.
+         *   2. If the game is not running and the last round has fully ended (gameOverFlag is false),
+         *      start a new game.  
+         * This ordering prevents an accidental press of space while the game over overlay is visible
+         * from immediately resetting the game state or queuing up a jump.  Previously the code would
+         * call jump() on every space press which could cause subtle state changes even when the game
+         * wasn’t running.  Now, jump() is only invoked if the game is actively running.
+         */
+        if (gameRunning) {
+          jump();
+        }
+        if (!gameRunning && !gameOverFlag) {
+          startGame();
+        }
+      }
+    });
+    // Game update logic
+    function update() {
+      frameCount++;
+      // Bird physics
+      bird.velocity += gravity;
+      bird.y += bird.velocity;
+      // Spawn candles less frequently to make the game a bit easier
+      if (frameCount % 110 === 0) {
+        spawnPipe();
+      }
+      // Move pipes and remove off-screen ones
+      for (let i = pipes.length - 1; i >= 0; i--) {
+        // Move candles at a slower speed for reduced difficulty
+        pipes[i].x -= 2;
+        // Check for passing pipe
+        if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) {
+          pipes[i].passed = true;
+          // Only count score on upper pipes
+          if (i % 2 === 0) {
+            score++;
+          }
+        }
+        // Remove pipes off screen
+        if (pipes[i].x + pipes[i].w < 0) {
+          pipes.splice(i, 1);
+        }
+      }
+      // Collision detection
+      if (bird.y + bird.height > canvas.height || bird.y < 0) {
+        gameOver();
+        return;
+      }
+      for (let i = 0; i < pipes.length; i++) {
+        const p = pipes[i];
+        if (
+          bird.x < p.x + p.w &&
+          bird.x + bird.width > p.x &&
+          bird.y < p.y + p.h &&
+          bird.y + bird.height > p.y
+        ) {
+          gameOver();
+          return;
+        }
+      }
+    }
+    // Draw the game
+    function draw() {
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Draw the hero image if it's loaded, otherwise fallback to a colored block
+      if (heroImg.complete) {
+        ctx.drawImage(heroImg, bird.x, bird.y, bird.width, bird.height);
+      } else {
+        ctx.fillStyle = '#a363e8';
+        ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+      }
+      // Draw candles with their respective colors
+      for (let p of pipes) {
+        ctx.fillStyle = p.color || '#5a81c5';
+        ctx.fillRect(p.x, p.y, p.w, p.h);
+      }
+      // Draw score
+      ctx.fillStyle = '#e3e7f1';
+      ctx.font = '20px Poppins, sans-serif';
+      ctx.fillText('Score: ' + score, 10, 30);
+    }
+    // Game loop
+    function gameLoop() {
+      if (!gameRunning) return;
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+    // Start the game
+    function startGame() {
+      resetGame();
+      // Clear the game over flag when starting a new round
+      gameOverFlag = false;
+      gameRunning = true;
+      requestAnimationFrame(gameLoop);
+    }
+    // Game over handler
+    function gameOver() {
+      // Stop the game and mark it as ended
+      gameRunning = false;
+      gameOverFlag = true;
+      finalScoreElem.textContent = 'Score: ' + score;
+      // Show the game over overlay when the player dies
+      gameOverOverlay.style.display = 'flex';
+    }
+    // Save score and update leaderboard
+    saveScoreBtn.addEventListener('click', () => {
+      const name = playerNameInput.value.trim() || 'Anonymous';
+      updateScoreboard(name, score);
+      playerNameInput.value = '';
+      displayScoreboard();
+      // Hide the overlay after saving the score
+      gameOverOverlay.style.display = 'none';
+    });
+    // Restart game
+    restartBtn.addEventListener('click', () => {
+      // Hide the overlay before restarting
+      gameOverOverlay.style.display = 'none';
+      startGame();
+    });
+    // Initialize scoreboard and start the game on load
+    window.addEventListener('load', () => {
+      displayScoreboard();
+      startGame();
+    });
+  </script>
+</body>
+</html>
