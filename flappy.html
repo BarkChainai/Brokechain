@@ -158,6 +158,15 @@
     const pipeWidth = 60;
     let frameCount = 0;
     let score = 0;
+
+    // Base speed at which candles move horizontally. As the player progresses and
+    // their score increases, this value will be increased to make the game
+    // progressively more difficult. See the update() function for how it's
+    // adjusted when certain score thresholds are reached.
+    let pipeSpeed = 3;
+    // Track the current difficulty level so we only update pipeSpeed when the
+    // player crosses a new threshold (e.g. every 10 points).
+    let difficultyLevel = 0;
     // Load the BrokeChain hero image to replace the plain block
     const heroImg = new Image();
     heroImg.src = 'images/brokechain_icon_256.png';
@@ -249,14 +258,29 @@
       }
       // Move pipes and remove off-screen ones
       for (let i = pipes.length - 1; i >= 0; i--) {
-        // Move candles at a slightly faster speed for increased pace
-        pipes[i].x -= 3;
+        // Move candles at the current difficulty‑adjusted speed.  This value
+        // starts at 3 and increases as the player racks up more points (see
+        // the difficulty logic below).
+        pipes[i].x -= pipeSpeed;
         // Check for passing pipe
         if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) {
           pipes[i].passed = true;
           // Only count score on upper pipes
           if (i % 2 === 0) {
             score++;
+            // Each time the score increases we check whether the player has
+            // crossed a new threshold that warrants increasing the difficulty.
+            // For every 10 points the candles will speed up by 1 unit, up to
+            // a reasonable maximum.  We guard this with difficultyLevel so
+            // the speed only increases once per threshold.
+            const newLevel = Math.floor(score / 10);
+            if (newLevel > difficultyLevel) {
+              difficultyLevel = newLevel;
+              // Increase pipeSpeed by one for each threshold, but cap it to
+              // avoid making the game impossible.  Feel free to adjust the
+              // cap to tune the upper bound of difficulty.
+              pipeSpeed = Math.min(3 + difficultyLevel, 7);
+            }
           }
         }
         // Remove pipes off screen
