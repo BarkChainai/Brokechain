@@ -221,6 +221,13 @@
       pipes.length = 0;
       frameCount = 0;
       score = 0;
+    // Reset difficulty-related variables so each new round starts at the
+    // easiest setting.  Without resetting these values the game would
+    // continue at the same speed and spawn rate as the previous round,
+    // which made restarts unexpectedly hard.
+    difficultyLevel = 0;
+    pipeSpeed = 1;
+    spawnIntervalFrames = 150;
       // Hide the game over overlay when starting/restarting a game
       gameOverOverlay.style.display = 'none';
     }
