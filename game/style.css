@@ -1,0 +1,18 @@
+:root { --bg:#0b0b10; --fg:#f1f3f7; --muted:#9aa3ad; --accent:#9c6cff; --edge:#21222c; }
+*{box-sizing:border-box} html,body{height:100%} body{margin:0;background:var(--bg);color:var(--fg);
+  font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Arial}
+.bar{display:flex;justify-content:space-between;gap:12px;align-items:center;padding:10px 14px;
+  border-bottom:1px solid var(--edge);position:sticky;top:0;background:rgba(11,11,16,.9);backdrop-filter:saturate(120%) blur(4px)}
+.brand{font-weight:700}
+.top3{font-variant-numeric:tabular-nums;color:var(--muted);font-size:14px}
+.wrap{max-width:520px;margin:24px auto;padding:0 16px}
+canvas{display:block;margin:0 auto;background:linear-gradient(#0f1118,#0b0b10)}
+.hud{display:flex;justify-content:center;gap:12px;align-items:center;margin:12px 0}
+#score{font-size:28px;font-weight:800;letter-spacing:.5px}
+.btn{padding:8px 14px;border:1px solid var(--edge);border-radius:10px;background:#151723;color:var(--fg);
+  box-shadow:0 6px 18px rgba(0,0,0,.25);cursor:pointer}
+dialog{border:1px solid var(--edge);border-radius:12px;background:#12131c;color:var(--fg);padding:16px 18px}
+dialog::backdrop{background:rgba(0,0,0,.55)}
+label{display:block;margin:10px 0;color:var(--muted)}
+input{width:100%;padding:10px;border-radius:10px;border:1px solid var(--edge);background:#0f1017;color:var(--fg)}
+menu{display:flex;gap:10px;justify-content:flex-end;padding:0;margin-top:12px}
