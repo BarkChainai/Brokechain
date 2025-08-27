@@ -152,28 +152,32 @@
     const gravity = 0.4;
     const jumpStrength = -7;
     const pipes = [];
-    // Increase the gap between candles to make navigation easier
-    // Reduce the gap between top and bottom candles slightly to add a bit more challenge.
-    const pipeGap = 180;
+    // Increase the gap between candles to make the beginning of the game feel easier.  A
+    // larger gap means there is more vertical space between the green and red
+    // candles.  As the game progresses we ramp up difficulty by moving the
+    // candles faster and spawning them more frequently.  The gap itself
+    // remains constant once set here so that early game is forgiving and
+    // later game difficulty comes from the speed and spawn rate.
+    const pipeGap = 220;
     const pipeWidth = 60;
     let frameCount = 0;
     let score = 0;
 
-    // Base speed at which candles move horizontally. As the player progresses and
-    // their score increases, this value will be increased to make the game
-    // progressively more difficult. See the update() function for how it's
-    // adjusted when certain score thresholds are reached.
-    // Start with a slower candle speed so the game feels easy at the beginning.
-    // This value will be increased as the player’s score rises.
-    let pipeSpeed = 2;
+    // Base speed at which candles move horizontally.  A lower value makes the
+    // start of the game easier.  As the player progresses and their score
+    // increases, we will increase this value to make the game progressively
+    // more challenging.  See the update() function for how it's adjusted
+    // when certain score thresholds are reached.
+    let pipeSpeed = 1;
     // Track the current difficulty level so we only update pipeSpeed when the
     // player crosses a new threshold (e.g. every 10 points).
     let difficultyLevel = 0;
 
     // Number of frames between spawning new candle pairs.  A larger value means
-    // pipes appear less frequently (easier).  This will decrease as the
-    // difficulty increases so that pipes spawn more often.
-    let spawnIntervalFrames = 120;
+    // pipes appear less frequently (easier).  We start with a large interval
+    // for an easy beginning and then decrease it as the difficulty ramps up
+    // so that pipes spawn more often.
+    let spawnIntervalFrames = 150;
     // Load the BrokeChain hero image to replace the plain block
     const heroImg = new Image();
     heroImg.src = 'images/brokechain_icon_256.png';
@@ -288,11 +292,15 @@
                 difficultyLevel = newLevel;
                 // Increase pipe speed by one for each threshold, starting from
                 // a base of 2.  Cap the speed so the game remains playable.
-                pipeSpeed = Math.min(2 + difficultyLevel, 7);
+                // Increase the candle speed gradually as the difficulty increases.
+                // Start from 1 and add 0.5 per difficulty level up to a reasonable maximum.
+                pipeSpeed = Math.min(1 + difficultyLevel * 0.5, 7);
                 // Reduce the spawn interval so that candles appear more often.
                 // Each difficulty level reduces the interval by 10 frames,
-                // down to a minimum of 60 frames between spawns.
-                spawnIntervalFrames = Math.max(120 - difficultyLevel * 10, 60);
+                // down to a minimum of 60 frames between spawns.  Note that
+                // we start from 150 frames and scale downward as the score
+                // increases.
+                spawnIntervalFrames = Math.max(150 - difficultyLevel * 10, 60);
               }
           }
         }
