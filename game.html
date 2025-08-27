@@ -100,7 +100,7 @@
         <a href="index.html#timey">Timey Moon™</a>
         <a href="whitepages.html#tokenomics">Tokenomics</a>
         <a href="whitepages.html">Whitepages</a>
-        <a href="game.html">Game</a>
+        <a href="games.html">Games</a>
       </nav>
       <div class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
@@ -144,19 +144,27 @@
     const saveScoreBtn = document.getElementById('saveScoreBtn');
     const restartBtn = document.getElementById('restartBtn');
     let gameRunning = false;
+    // Flag that is set when the game ends to prevent accidental restarts via the space bar while the scoreboard overlay is visible.
+    let gameOverFlag = false;
     const bird = { x: 80, y: canvas.height / 2 - 15, width: 30, height: 30, velocity: 0 };
-    const gravity = 0.5;
-    const jumpStrength = -8;
+    // Make gravity a bit weaker and jump a bit gentler so the game feels easier
+    const gravity = 0.4;
+    const jumpStrength = -7;
     const pipes = [];
-    const pipeGap = 160;
+    // Increase the gap between candles to make navigation easier
+    const pipeGap = 200;
     const pipeWidth = 60;
     let frameCount = 0;
     let score = 0;
+    // Load the BrokeChain hero image to replace the plain block
+    const heroImg = new Image();
+    heroImg.src = 'images/brokechain_icon_256.png';
     // Initialize and display the scoreboard
     function displayScoreboard() {
+      // Retrieve the top scores for the flappy game from localStorage
       let board;
       try {
-        board = JSON.parse(localStorage.getItem('brokechain_board') || '[]');
+        board = JSON.parse(localStorage.getItem('flappy_board') || '[]');
       } catch (e) {
         board = [];
       }
@@ -171,18 +179,18 @@
       html += '</ol>';
       scoreboardElem.innerHTML = html;
     }
-    // Update the scoreboard in localStorage
+    // Update the flappy leaderboard in localStorage
     function updateScoreboard(name, newScore) {
       let board;
       try {
-        board = JSON.parse(localStorage.getItem('brokechain_board') || '[]');
+        board = JSON.parse(localStorage.getItem('flappy_board') || '[]');
       } catch (e) {
         board = [];
       }
       board.push({ name: name, score: newScore });
       board.sort((a, b) => b.score - a.score);
       if (board.length > 3) board = board.slice(0, 3);
-      localStorage.setItem('brokechain_board', JSON.stringify(board));
+      localStorage.setItem('flappy_board', JSON.stringify(board));
     }
     // Reset game state
     function resetGame() {
@@ -196,8 +204,9 @@
     // Spawn a new pipe pair
     function spawnPipe() {
       const gapStart = Math.random() * (canvas.height - pipeGap - 200) + 100;
-      pipes.push({ x: canvas.width, y: 0, w: pipeWidth, h: gapStart });
-      pipes.push({ x: canvas.width, y: gapStart + pipeGap, w: pipeWidth, h: canvas.height - (gapStart + pipeGap) });
+      // Top candles are green and bottom candles are red to represent crypto trades
+      pipes.push({ x: canvas.width, y: 0, w: pipeWidth, h: gapStart, color: '#00c853' }); // green top candle
+      pipes.push({ x: canvas.width, y: gapStart + pipeGap, w: pipeWidth, h: canvas.height - (gapStart + pipeGap), color: '#d50000' }); // red bottom candle
     }
     // Handle jump on click or space
     function jump() {
@@ -207,9 +216,12 @@
     canvas.addEventListener('mousedown', jump);
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
-        if (!gameRunning) {
+        // Only start a new game on space if the previous round hasn't ended yet.
+        // When the scoreboard overlay is showing, pressing space should not restart automatically.
+        if (!gameRunning && !gameOverFlag) {
           startGame();
         }
+        // Always call jump regardless of game state to allow the bird to flap when the game is running
         jump();
       }
     });
@@ -219,13 +231,14 @@
       // Bird physics
       bird.velocity += gravity;
       bird.y += bird.velocity;
-      // Spawn pipes
-      if (frameCount % 90 === 0) {
+      // Spawn candles less frequently to make the game a bit easier
+      if (frameCount % 110 === 0) {
         spawnPipe();
       }
       // Move pipes and remove off-screen ones
       for (let i = pipes.length - 1; i >= 0; i--) {
-        pipes[i].x -= 3;
+        // Move candles at a slower speed for reduced difficulty
+        pipes[i].x -= 2;
         // Check for passing pipe
         if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) {
           pipes[i].passed = true;
@@ -261,12 +274,16 @@
     function draw() {
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      // Draw bird
-      ctx.fillStyle = '#a363e8';
-      ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
-      // Draw pipes
-      ctx.fillStyle = '#5a81c5';
+      // Draw the hero image if it's loaded, otherwise fallback to a colored block
+      if (heroImg.complete) {
+        ctx.drawImage(heroImg, bird.x, bird.y, bird.width, bird.height);
+      } else {
+        ctx.fillStyle = '#a363e8';
+        ctx.fillRect(bird.x, bird.y, bird.width, bird.height);
+      }
+      // Draw candles with their respective colors
       for (let p of pipes) {
+        ctx.fillStyle = p.color || '#5a81c5';
         ctx.fillRect(p.x, p.y, p.w, p.h);
       }
       // Draw score
@@ -284,12 +301,16 @@
     // Start the game
     function startGame() {
       resetGame();
+      // Clear the game over flag when starting a new round
+      gameOverFlag = false;
       gameRunning = true;
       requestAnimationFrame(gameLoop);
     }
     // Game over handler
     function gameOver() {
+      // Stop the game and mark it as ended
       gameRunning = false;
+      gameOverFlag = true;
       finalScoreElem.textContent = 'Score: ' + score;
       gameOverOverlay.style.visibility = 'visible';
     }
@@ -306,10 +327,10 @@
       gameOverOverlay.style.visibility = 'hidden';
       startGame();
     });
-    // Initialize scoreboard on load
+    // Initialize scoreboard and start the game on load
     window.addEventListener('load', () => {
       displayScoreboard();
-            startGame();
+      startGame();
     });
   </script>
 </body>

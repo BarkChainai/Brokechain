@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrokeChain Ramen Clicker</title>
+  <!-- Reuse fonts and styles from main site -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <meta name="description" content="Click the ramen bowls as fast as you can and aim for the top of the leaderboard." />
+  <style>
+    /* Additional clicker-specific styles */
+    .game-container {
+      margin-top: 7rem;
+      padding: 1rem;
+      max-width: 700px;
+      margin-left: auto;
+      margin-right: auto;
+      text-align: center;
+    }
+    #clickerCanvas {
+      background: rgba(18, 23, 38, 0.85);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 0.5rem;
+      display: block;
+      margin: 1rem auto;
+    }
+    #clickerScoreboard {
+      background: rgba(18, 23, 38, 0.85);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 0.5rem;
+      margin: 2rem auto 1rem;
+      padding: 1rem;
+      max-width: 480px;
+    }
+    #clickerScoreboard h2 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+    }
+    #clickerScoreboard ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      text-align: left;
+    }
+    #clickerScoreboard li {
+      margin-bottom: 0.25rem;
+    }
+    #clickerGameOverOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.85);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      color: #e3e7f1;
+      z-index: 2000;
+      visibility: hidden;
+    }
+    #clickerGameOverOverlay p {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+    }
+    #clickerGameOverOverlay input {
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.4rem;
+      border: none;
+      margin-bottom: 0.5rem;
+      font-size: 1rem;
+    }
+    #clickerGameOverOverlay button {
+      padding: 0.5rem 1.25rem;
+      margin: 0.25rem;
+      border: none;
+      border-radius: 0.4rem;
+      font-weight: bold;
+      cursor: pointer;
+      background: #ffffff;
+      color: #090d23;
+    }
+    #clickerGameOverOverlay button:hover {
+      background: #e3e7f1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header and navigation reused from main site -->
+  <header class="header">
+    <div class="container">
+      <nav class="nav" id="nav">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#timey">Timey Moon™</a>
+        <a href="whitepages.html#tokenomics">Tokenomics</a>
+        <a href="whitepages.html">Whitepages</a>
+        <a href="games.html">Games</a>
+      </nav>
+      <div class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </div>
+    </div>
+  </header>
+  <main class="game-container">
+    <!-- Leaderboard display -->
+    <div id="clickerScoreboard"></div>
+    <!-- The game canvas -->
+    <canvas id="clickerCanvas" width="480" height="640"></canvas>
+    <!-- Overlay for game over, score submission and restart -->
+    <div id="clickerGameOverOverlay">
+      <p id="finalScore2">Score: 0</p>
+      <label style="margin-bottom:0.5rem;">Enter your X @ or name:<br/><input id="playerName2" type="text" placeholder="@username" /></label>
+      <div>
+        <button id="saveScoreBtn2">Submit Score</button>
+        <button id="restartBtn2">Play Again</button>
+      </div>
+    </div>
+  </main>
+  <footer>
+    © <script>document.write(new Date().getFullYear());</script> BrokeChain. All rights shattered. Timey Moon™ lives on.
+    <br />
+    <small>No financial advice. DYOR.</small>
+  </footer>
+  <script>
+    // Toggle nav for mobile
+    const menuToggle = document.getElementById('menuToggle');
+    const nav = document.getElementById('nav');
+    menuToggle.addEventListener('click', () => {
+      nav.classList.toggle('open');
+    });
+
+    // Clicker game logic
+    const canvas = document.getElementById('clickerCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreboardElem = document.getElementById('clickerScoreboard');
+    const gameOverOverlay = document.getElementById('clickerGameOverOverlay');
+    const finalScoreElem = document.getElementById('finalScore2');
+    const playerNameInput = document.getElementById('playerName2');
+    const saveScoreBtn = document.getElementById('saveScoreBtn2');
+    const restartBtn = document.getElementById('restartBtn2');
+
+    let gameRunning = false;
+    let objects = [];
+    let score = 0;
+    let timer = 30;
+    let spawnInterval;
+    let timerInterval;
+
+    // Display the scoreboard for the clicker game
+    function displayScoreboard() {
+      let board;
+      try {
+        board = JSON.parse(localStorage.getItem('clicker_board') || '[]');
+      } catch (e) {
+        board = [];
+      }
+      let html = '<h2>Top Players</h2><ol>';
+      board.forEach(entry => {
+        const safeName = entry.name.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        html += `<li>${safeName} — ${entry.score}</li>`;
+      });
+      if (board.length === 0) {
+        html += '<li>No scores yet. Be the first!</li>';
+      }
+      html += '</ol>';
+      scoreboardElem.innerHTML = html;
+    }
+
+    // Update the clicker leaderboard in localStorage
+    function updateScoreboard(name, newScore) {
+      let board;
+      try {
+        board = JSON.parse(localStorage.getItem('clicker_board') || '[]');
+      } catch (e) {
+        board = [];
+      }
+      board.push({ name: name, score: newScore });
+      board.sort((a, b) => b.score - a.score);
+      if (board.length > 3) board = board.slice(0, 3);
+      localStorage.setItem('clicker_board', JSON.stringify(board));
+    }
+
+    // Spawn a new ramen bowl (circle)
+    function spawnObject() {
+      const radius = 15 + Math.random() * 10;
+      const x = radius + Math.random() * (canvas.width - 2 * radius);
+      const y = radius + Math.random() * (canvas.height - 2 * radius);
+      objects.push({ x, y, radius });
+    }
+
+    // Draw the game state
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      // Draw all ramen bowls
+      for (const obj of objects) {
+        ctx.fillStyle = '#f7c873';
+        ctx.beginPath();
+        ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Draw the score and timer
+      ctx.fillStyle = '#e3e7f1';
+      ctx.font = '20px Poppins, sans-serif';
+      ctx.fillText('Score: ' + score, 10, 30);
+      ctx.fillText('Time: ' + timer + 's', 10, 60);
+    }
+
+    // Main animation loop
+    function gameLoop() {
+      if (!gameRunning) return;
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    // Start the clicker game
+    function startGame() {
+      objects = [];
+      score = 0;
+      timer = 30;
+      gameRunning = true;
+      // Spawn an initial ramen bowl
+      spawnObject();
+      spawnInterval = setInterval(spawnObject, 800);
+      timerInterval = setInterval(() => {
+        timer--;
+        if (timer <= 0) {
+          endGame();
+        }
+      }, 1000);
+      requestAnimationFrame(gameLoop);
+    }
+
+    // End the clicker game and show overlay
+    function endGame() {
+      gameRunning = false;
+      clearInterval(spawnInterval);
+      clearInterval(timerInterval);
+      finalScoreElem.textContent = 'Score: ' + score;
+      gameOverOverlay.style.visibility = 'visible';
+    }
+
+    // Handle canvas clicks to collect ramen bowls
+    canvas.addEventListener('click', (e) => {
+      if (!gameRunning) return;
+      const rect = canvas.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const clickY = e.clientY - rect.top;
+      for (let i = objects.length - 1; i >= 0; i--) {
+        const obj = objects[i];
+        const dx = clickX - obj.x;
+        const dy = clickY - obj.y;
+        if (dx * dx + dy * dy <= obj.radius * obj.radius) {
+          objects.splice(i, 1);
+          score++;
+          break;
+        }
+      }
+    });
+
+    // Save score and update leaderboard
+    saveScoreBtn.addEventListener('click', () => {
+      const name = playerNameInput.value.trim() || 'Anonymous';
+      updateScoreboard(name, score);
+      playerNameInput.value = '';
+      displayScoreboard();
+      gameOverOverlay.style.visibility = 'hidden';
+    });
+    // Restart game
+    restartBtn.addEventListener('click', () => {
+      gameOverOverlay.style.visibility = 'hidden';
+      startGame();
+    });
+
+    // Initialize scoreboard and start the game on load
+    window.addEventListener('load', () => {
+      displayScoreboard();
+      startGame();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BrokeChain Games</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+  <meta name="description" content="Play BrokeChain games. Choose between Flappy Pepe or Ramen Clicker." />
+  <style>
+    /* Styles for the games selection page */
+    .game-selection {
+      margin-top: 8rem;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 2rem;
+      padding: 1rem;
+    }
+    .game-card {
+      background: rgba(18, 23, 38, 0.85);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      width: 280px;
+      text-align: center;
+      text-decoration: none;
+      color: #e3e7f1;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .game-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+    }
+    .game-card h3 {
+      margin-top: 0;
+      margin-bottom: 0.5rem;
+      font-family: 'Poppins', sans-serif;
+      font-size: 1.5rem;
+    }
+    .game-card p {
+      margin-bottom: 0;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <!-- Header and navigation -->
+  <header class="header">
+    <div class="container">
+      <nav class="nav" id="nav">
+        <a href="index.html">Home</a>
+        <a href="index.html#about">About</a>
+        <a href="index.html#timey">Timey Moon™</a>
+        <a href="whitepages.html#tokenomics">Tokenomics</a>
+        <a href="whitepages.html">Whitepages</a>
+        <a href="games.html">Games</a>
+      </nav>
+      <div class="menu-toggle" id="menuToggle" aria-label="Toggle navigation">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+      </div>
+    </div>
+  </header>
+  <main>
+    <section class="game-selection">
+      <a href="game.html" class="game-card">
+        <h3>Flappy Pepe</h3>
+        <p>Dodge red and green candles to survive!</p>
+      </a>
+      <a href="clicker.html" class="game-card">
+        <h3>Ramen Clicker</h3>
+        <p>Click the ramen bowls before they vanish.</p>
+      </a>
+    </section>
+  </main>
+  <footer>
+    © <script>document.write(new Date().getFullYear());</script> BrokeChain. All rights shattered. Timey Moon™ lives on.
+    <br />
+    <small>No financial advice. DYOR.</small>
+  </footer>
+  <script>
+    // Toggle nav for mobile
+    const menuToggle = document.getElementById('menuToggle');
+    const nav = document.getElementById('nav');
+    menuToggle.addEventListener('click', () => {
+      nav.classList.toggle('open');
+    });
+  </script>
+</body>
+</html>
