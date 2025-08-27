@@ -216,13 +216,22 @@
     canvas.addEventListener('mousedown', jump);
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Space') {
-        // Only start a new game on space if the previous round hasn't ended yet.
-        // When the scoreboard overlay is showing, pressing space should not restart automatically.
+        /*
+         * Handle the space bar in a safer order:
+         *   1. If the game is currently running, allow the bird to flap.
+         *   2. If the game is not running and the last round has fully ended (gameOverFlag is false),
+         *      start a new game.  
+         * This ordering prevents an accidental press of space while the game over overlay is visible
+         * from immediately resetting the game state or queuing up a jump.  Previously the code would
+         * call jump() on every space press which could cause subtle state changes even when the game
+         * wasn’t running.  Now, jump() is only invoked if the game is actively running.
+         */
+        if (gameRunning) {
+          jump();
+        }
         if (!gameRunning && !gameOverFlag) {
           startGame();
         }
-        // Always call jump regardless of game state to allow the bird to flap when the game is running
-        jump();
       }
     });
     // Game update logic
