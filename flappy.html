@@ -163,10 +163,17 @@
     // their score increases, this value will be increased to make the game
     // progressively more difficult. See the update() function for how it's
     // adjusted when certain score thresholds are reached.
-    let pipeSpeed = 3;
+    // Start with a slower candle speed so the game feels easy at the beginning.
+    // This value will be increased as the player’s score rises.
+    let pipeSpeed = 2;
     // Track the current difficulty level so we only update pipeSpeed when the
     // player crosses a new threshold (e.g. every 10 points).
     let difficultyLevel = 0;
+
+    // Number of frames between spawning new candle pairs.  A larger value means
+    // pipes appear less frequently (easier).  This will decrease as the
+    // difficulty increases so that pipes spawn more often.
+    let spawnIntervalFrames = 120;
     // Load the BrokeChain hero image to replace the plain block
     const heroImg = new Image();
     heroImg.src = 'images/brokechain_icon_256.png';
@@ -252,8 +259,11 @@
       // Bird physics
       bird.velocity += gravity;
       bird.y += bird.velocity;
-      // Spawn candles slightly more frequently to add a bit of challenge
-      if (frameCount % 100 === 0) {
+      // Spawn candles based on the current spawn interval.  A larger
+      // interval means fewer candles and an easier start.  As the difficulty
+      // increases, this interval will shrink, causing candles to appear
+      // more frequently.
+      if (frameCount % spawnIntervalFrames === 0) {
         spawnPipe();
       }
       // Move pipes and remove off-screen ones
@@ -274,13 +284,16 @@
             // a reasonable maximum.  We guard this with difficultyLevel so
             // the speed only increases once per threshold.
             const newLevel = Math.floor(score / 10);
-            if (newLevel > difficultyLevel) {
-              difficultyLevel = newLevel;
-              // Increase pipeSpeed by one for each threshold, but cap it to
-              // avoid making the game impossible.  Feel free to adjust the
-              // cap to tune the upper bound of difficulty.
-              pipeSpeed = Math.min(3 + difficultyLevel, 7);
-            }
+              if (newLevel > difficultyLevel) {
+                difficultyLevel = newLevel;
+                // Increase pipe speed by one for each threshold, starting from
+                // a base of 2.  Cap the speed so the game remains playable.
+                pipeSpeed = Math.min(2 + difficultyLevel, 7);
+                // Reduce the spawn interval so that candles appear more often.
+                // Each difficulty level reduces the interval by 10 frames,
+                // down to a minimum of 60 frames between spawns.
+                spawnIntervalFrames = Math.max(120 - difficultyLevel * 10, 60);
+              }
           }
         }
         // Remove pipes off screen
