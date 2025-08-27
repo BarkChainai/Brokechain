@@ -2,7 +2,7 @@
 body {
   font-family: 'Inter', sans-serif;
   /* Overlay a semi-transparent gradient over the vibrant graffiti background image */
-  background-image: linear-gradient(rgba(9, 13, 35, 0.6), rgba(9, 13, 35, 0.6)), url('../images/graffiti_background.png');
+  background-image: linear-gradient(rgba(9, 13, 35, 0.6), rgba(9, 13, 35, 0.6)), url('../images/new_background.png');
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
