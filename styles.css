@@ -1,0 +1,185 @@
+/* Global styles */
+body {
+  font-family: 'Inter', sans-serif;
+  /* Overlay a semi-transparent gradient over the vibrant graffiti background image */
+  background-image: linear-gradient(rgba(9, 13, 35, 0.6), rgba(9, 13, 35, 0.6)), url('../images/graffiti_background.png');
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: #e3e7f1;
+  margin: 0;
+  padding: 0;
+}
+
+.header {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(9, 13, 35, 0.8);
+  z-index: 1000;
+}
+
+.nav {
+  display: flex;
+  gap: 1.5rem;
+  padding: 1rem;
+}
+
+.nav a {
+  color: #e3e7f1 !important;
+  text-decoration: none;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+}
+
+.menu-toggle {
+  display: none;
+  cursor: pointer;
+}
+
+.hero {
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.section {
+  padding: 5rem 0;
+}
+
+.section-heading {
+  font-family: 'Poppins', sans-serif;
+  font-size: 2rem;
+  background: linear-gradient(to right, #5a81c5, #a363e8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin: 2rem 0 1rem;
+}
+
+/* Panels */
+.panel {
+  background-color: rgba(18, 23, 38, 0.85);
+  max-width: 800px;
+  margin: 1.5rem auto;
+  padding: 2rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.panel:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+}
+
+.panel p {
+  font-size: 1rem;
+  line-height: 1.5;
+  margin: 0.5rem 0;
+}
+
+/* CTA Buttons */
+.cta-btn {
+  background: #ffffff;
+  color: #090d23;
+  padding: 0.5rem 1.5rem;
+  border-radius: 2rem;
+  font-weight: bold;
+  text-decoration: none;
+  display: inline-block;
+  margin-right: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+/* Hero content specifics */
+.hero .hero-content {
+  max-width: 500px;
+  padding: 1rem 1.5rem;
+  background-color: rgba(9, 13, 35, 0.9);
+  border-radius: 0.5rem;
+  margin: 0 auto;
+}
+
+.hero h1 {
+  font-size: clamp(1.8rem, 4vw + 1rem, 3rem);
+  margin-bottom: 0.75rem;
+  border-bottom: none;
+}
+
+.hero p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+}
+
+footer {
+  background: #0a1030;
+  color: #9da6c1;
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Media queries for responsiveness */
+@media (max-width: 768px) {
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+    display: none;
+  }
+
+  .nav.open {
+    display: flex;
+    background: rgba(9, 13, 35, 0.9);
+    width: 100%;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    padding: 1rem;
+  }
+
+  .menu-toggle {
+    display: block;
+    color: #e3e7f1;
+    margin-left: auto;
+  }
+
+  .hero {
+    min-height: 50vh;
+    padding: 2rem 1rem;
+  }
+
+  .section {
+    padding: 2rem 1rem;
+  }
+}
+
+/* Whitepages-specific enhancements */
+.hero .hero-content h1 {
+  color: var(--color-text, #e3e7f1) !important;
+  border-bottom: 2px solid var(--color-text, #e3e7f1) !important;
+  display: inline-block;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.hero .hero-content p {
+  color: var(--color-text, #e3e7f1) !important;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+  font-size: 1.2rem;
+}
+
+.section-heading {
+  background: none !important;
+  -webkit-text-fill-color: #e3e7f1 !important;
+  color: #e3e7f1 !important;
+  -webkit-background-clip: unset !important;
+}
