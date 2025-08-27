@@ -50,20 +50,21 @@
       margin-bottom: 0.25rem;
     }
     #gameOverOverlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-direction: column;
-      color: #e3e7f1;
-      z-index: 2000;
-      visibility: hidden;
-    }
+       position: fixed;
+       top: 0;
+       left: 0;
+       right: 0;
+       bottom: 0;
+       background: rgba(0, 0, 0, 0.85);
+       /* Center contents when visible */
+       align-items: center;
+       justify-content: center;
+       flex-direction: column;
+       color: #e3e7f1;
+       z-index: 2000;
+       /* Hide the overlay by default; it will be shown via display property in JS */
+       display: none;
+     }
     #gameOverOverlay p {
       font-size: 1.3rem;
       margin-bottom: 1rem;
@@ -199,7 +200,8 @@
       pipes.length = 0;
       frameCount = 0;
       score = 0;
-      gameOverOverlay.style.visibility = 'hidden';
+      // Hide the game over overlay when starting/restarting a game
+      gameOverOverlay.style.display = 'none';
     }
     // Spawn a new pipe pair
     function spawnPipe() {
@@ -321,7 +323,8 @@
       gameRunning = false;
       gameOverFlag = true;
       finalScoreElem.textContent = 'Score: ' + score;
-      gameOverOverlay.style.visibility = 'visible';
+      // Show the game over overlay when the player dies
+      gameOverOverlay.style.display = 'flex';
     }
     // Save score and update leaderboard
     saveScoreBtn.addEventListener('click', () => {
@@ -329,11 +332,13 @@
       updateScoreboard(name, score);
       playerNameInput.value = '';
       displayScoreboard();
-      gameOverOverlay.style.visibility = 'hidden';
+      // Hide the overlay after saving the score
+      gameOverOverlay.style.display = 'none';
     });
     // Restart game
     restartBtn.addEventListener('click', () => {
-      gameOverOverlay.style.visibility = 'hidden';
+      // Hide the overlay before restarting
+      gameOverOverlay.style.display = 'none';
       startGame();
     });
     // Initialize scoreboard and start the game on load
