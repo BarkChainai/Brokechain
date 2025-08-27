@@ -153,7 +153,8 @@
     const jumpStrength = -7;
     const pipes = [];
     // Increase the gap between candles to make navigation easier
-    const pipeGap = 200;
+    // Reduce the gap between top and bottom candles slightly to add a bit more challenge.
+    const pipeGap = 180;
     const pipeWidth = 60;
     let frameCount = 0;
     let score = 0;
@@ -242,14 +243,14 @@
       // Bird physics
       bird.velocity += gravity;
       bird.y += bird.velocity;
-      // Spawn candles less frequently to make the game a bit easier
-      if (frameCount % 110 === 0) {
+      // Spawn candles slightly more frequently to add a bit of challenge
+      if (frameCount % 100 === 0) {
         spawnPipe();
       }
       // Move pipes and remove off-screen ones
       for (let i = pipes.length - 1; i >= 0; i--) {
-        // Move candles at a slower speed for reduced difficulty
-        pipes[i].x -= 2;
+        // Move candles at a slightly faster speed for increased pace
+        pipes[i].x -= 3;
         // Check for passing pipe
         if (!pipes[i].passed && pipes[i].x + pipeWidth < bird.x) {
           pipes[i].passed = true;
@@ -332,13 +333,17 @@
       updateScoreboard(name, score);
       playerNameInput.value = '';
       displayScoreboard();
-      // Hide the overlay after saving the score
+      // Hide the overlay after saving the score and clear the game over flag.
+      // Clearing gameOverFlag here allows the player to restart the game with the space bar
+      // once they’ve submitted their score and the overlay has been dismissed.
       gameOverOverlay.style.display = 'none';
+      gameOverFlag = false;
     });
     // Restart game
     restartBtn.addEventListener('click', () => {
-      // Hide the overlay before restarting
+      // Hide the overlay and clear the game over flag before restarting
       gameOverOverlay.style.display = 'none';
+      gameOverFlag = false;
       startGame();
     });
     // Initialize scoreboard and start the game on load

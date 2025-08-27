@@ -150,6 +150,10 @@
     let spawnInterval;
     let timerInterval;
 
+    // Load the BrokeChain hero image to use for ramen bowls
+    const ramenImg = new Image();
+    ramenImg.src = 'images/brokechain_icon_256.png';
+
     // Display the scoreboard for the clicker game
     function displayScoreboard() {
       let board;
@@ -197,10 +201,16 @@
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       // Draw all ramen bowls
       for (const obj of objects) {
-        ctx.fillStyle = '#f7c873';
-        ctx.beginPath();
-        ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
-        ctx.fill();
+        // If the hero image is loaded, draw it scaled to the object size
+        if (ramenImg.complete) {
+          ctx.drawImage(ramenImg, obj.x - obj.radius, obj.y - obj.radius, obj.radius * 2, obj.radius * 2);
+        } else {
+          // Fallback: draw a simple colored circle
+          ctx.fillStyle = '#f7c873';
+          ctx.beginPath();
+          ctx.arc(obj.x, obj.y, obj.radius, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
       // Draw the score and timer
       ctx.fillStyle = '#e3e7f1';
@@ -224,7 +234,10 @@
       gameRunning = true;
       // Spawn an initial ramen bowl
       spawnObject();
-      spawnInterval = setInterval(spawnObject, 800);
+      // Spawn ramen much more frequently to make the game more engaging.
+      // Reduced interval means more objects appear within the 30‑second round,
+      // allowing players to rack up higher scores.
+      spawnInterval = setInterval(spawnObject, 300);
       timerInterval = setInterval(() => {
         timer--;
         if (timer <= 0) {
