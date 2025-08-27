@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BrokeChain — Flappy Bag 💀⚡</title>
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <header class="bar">
+    <div class="brand">💀 BrokeChain — Flappy Bag</div>
+    <div id="top3" class="top3">Loading Top-3…</div>
+  </header>
+
+  <main class="wrap">
+    <canvas id="game" width="420" height="700"></canvas>
+
+    <div class="hud">
+      <div id="score">0</div>
+      <button id="startBtn" class="btn">Start</button>
+    </div>
+
+    <dialog id="gameOver">
+      <h3>Game over</h3>
+      <p>Your score: <b id="finalScore">0</b></p>
+      <form method="dialog" id="submitForm">
+        <label>Handle (X @ or name)
+          <input id="handle" maxlength="24" placeholder="@broke_maxi" />
+        </label>
+        <menu>
+          <button id="submitBtn" value="submit" class="btn">Submit score</button>
+          <button id="closeBtn" value="cancel">Close</button>
+        </menu>
+      </form>
+    </dialog>
+  </main>
+
+  <script type="module" src="./game.js"></script>
+</body>
+</html>
