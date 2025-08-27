@@ -1,6 +1,6 @@
 export async function onRequest(context) {
   const { env } = context;
-  const PERM_KEY = 'perm';
+  const PERM_KEY = 'hall';
   // Check if permanent hall-of-fame exists
   let perm = await env.BROKECHAIN_SCORES.get(PERM_KEY);
   let lb = [];
